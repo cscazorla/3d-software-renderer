@@ -18,6 +18,7 @@ This is a basic 3d CPU based renderer for polygon meshes built in vanilla C++. I
 * Back-face culling for visibility checks
 * Graphics pipeline to move from model space to screen space
 * Basic flat shading
+* Look at camera model
 
 # Compilation
 
