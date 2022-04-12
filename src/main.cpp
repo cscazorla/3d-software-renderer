@@ -35,16 +35,15 @@ void Init(int width, int height, const std::string& obj_file) {
     cube.mesh = new Mesh();
     cube.mesh->LoadObjFileData(obj_file);
     cube.color = Color::White();
-
-    // Cube transform
-    cube.position = Vec3(0, 0, 8);
+    cube.position = Vec3(0, 0, 4);
     cube.rotation = Vec3(0, 0, 0);
     cube.scale = Vec3(1, 1, 1);
 
     // Camera initialization
-    camera.position = Vec3(0, 0, 0);
-    camera.zoom = 400.0f;
+    camera.position = Vec3(0, 0, -5);
+    camera.target = Vec3(0, 0, 0);
     camera.light_direction = Vec3(0, 0, 1);
+    camera.zoom = 1.0f;
     float fov = PI / 3.0;
     float aspect = (float)height / (float)width;
     float znear = 0.1;
@@ -60,14 +59,16 @@ void Update(float dt) {
     // Clear previous projections
     cube.projected_triangles.clear();
 
-    // Update body
-    cube.rotation += Vec3(dt, dt, dt);
+    // Update body & camera
+    cube.rotation += Vec3(0, dt, 0);
+    camera.position += Vec3(0, dt, 0);
 
     // Create world matrix
     Mat4 scale_matrix = Mat4::CreateScale(cube.scale.x, cube.scale.y, cube.scale.z);
     Mat4 rotation_matrix = Mat4::CreateRotationXYZ(cube.rotation.x, cube.rotation.y, cube.rotation.z);
     Mat4 translate_matrix = Mat4::CreateTranslate(cube.position.x, cube.position.y, cube.position.z);
-    Mat4 world_matrix = translate_matrix * rotation_matrix * scale_matrix;
+    Mat4 view_matrix = Mat4::CreateLookAt(camera.position, camera.target, Vec3(0,1,0));
+    Mat4 world_matrix = view_matrix * translate_matrix * rotation_matrix * scale_matrix;
 
     // Iterate through mesh faces
     for(int i = 0, max = cube.mesh->GetNumberOfFaces(); i < max; i++) {
@@ -149,9 +150,7 @@ void Update(float dt) {
 void Render(float dt) {
     Graphics::DrawGrid();
 
-    // Draw elements centered in the screen
     for (auto triangle: cube.projected_triangles) {
-        // Draw filled triangle
         Graphics::DrawFillTriangle(
             triangle.points[0].x,
             triangle.points[0].y,
@@ -182,6 +181,24 @@ void Input() {
     }
 }
 
+float Wait() {
+    // Wait some time until the reach the target frame time in milliseconds
+    static int timePreviousFrame;
+    int timeToWait = MILLISECS_PER_FRAME - (SDL_GetTicks() - timePreviousFrame);
+    if (timeToWait > 0)
+        SDL_Delay(timeToWait);
+
+    // Calculate the deltatime in seconds
+    float deltaTime = (SDL_GetTicks() - timePreviousFrame) / 1000.0f;
+    if (deltaTime > 0.016)
+        deltaTime = 0.016;
+
+    // Set the time of the current frame to be used in the next one
+    timePreviousFrame = SDL_GetTicks();
+
+    return deltaTime;
+}
+
 int main(int argc, char *argv[]) {
 
     if (argc == 4) {
@@ -190,23 +207,11 @@ int main(int argc, char *argv[]) {
         while (running) {
             Input();
 
-            // Wait some time until the reach the target frame time in milliseconds
-            static int timePreviousFrame;
-            int timeToWait = MILLISECS_PER_FRAME - (SDL_GetTicks() - timePreviousFrame);
-            if (timeToWait > 0)
-                SDL_Delay(timeToWait);
+            float dt = Wait();
 
-            // Calculate the deltatime in seconds
-            float deltaTime = (SDL_GetTicks() - timePreviousFrame) / 1000.0f;
-            if (deltaTime > 0.016)
-                deltaTime = 0.016;
+            Update(dt);
 
-            // Set the time of the current frame to be used in the next one
-            timePreviousFrame = SDL_GetTicks();
-
-            Update(deltaTime);
-
-            Render(deltaTime);
+            Render(dt);
         }
 
         Destroy();
