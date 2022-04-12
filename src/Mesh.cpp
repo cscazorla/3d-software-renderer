@@ -5,7 +5,6 @@
 
 Mesh::Mesh() {
     std::cout << "Mesh constructor called!" << std::endl;
-    number_of_faces = 0;
 }
 
 Mesh::~Mesh() {
@@ -18,11 +17,14 @@ void Mesh::AddVertex(Vec3 vertex) {
 
 void Mesh::AddFace(int a, int b, int c) {
     faces.push_back({a, b, c});
-    number_of_faces++;
 }
 
 int Mesh::GetNumberOfFaces() {
-    return number_of_faces;
+    return faces.size();
+}
+
+int Mesh::GetNumberOfVertices() {
+    return vertices.size();
 }
 
 std::vector<Vec3> Mesh::GetFaceVertices(int i) {

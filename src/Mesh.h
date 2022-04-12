@@ -17,7 +17,6 @@ class Mesh {
     private:
         std::vector<Vec3> vertices;
         std::vector<Face> faces;
-        int number_of_faces;
     public:
         Mesh();
         ~Mesh();
@@ -25,6 +24,7 @@ class Mesh {
         void AddVertex(Vec3 vertex);
         void AddFace(int a, int b, int c);
         int GetNumberOfFaces();
+        int GetNumberOfVertices();
         std::vector<Vec3> GetFaceVertices(int i);
         void LoadObjFileData(const std::string& obj_file);
 };
